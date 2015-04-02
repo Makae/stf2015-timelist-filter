@@ -1,0 +1,11 @@
+.stf2015_filter_list_wrapper .highlight {
+  font-weight: bolder;
+}
+.stf2015_filter_list_wrapper h5,
+.stf2015_filter_list_wrapper h6 {
+  margin-top:0.5em;
+  margin-bottom:0;
+}
+.stf2015_filter_list_wrapper h5 {
+  margin-top: 1.5em;
+}
