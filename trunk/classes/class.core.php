@@ -18,19 +18,13 @@ class STF2015_Filter {
 
   public function wp_enqueue_scripts() {
     wp_enqueue_style('stf2015_style', STF_FILTER_URL .'css/stf2015_filter_list.css');
-    // $config = array(
-    //   'ajax_url' => admin_url('admin-ajax.php'),
-    //   'ajax_params' => array('action' => 'mgm_stf_get_timetable'),
-    //   'settings' => array(
-    //     'places' => $this->get_places()
-    //   )
-    // );
-    // wp_localize_script('makae-gm-cp-timetable', 'makae_gm_stf', $config);
+    wp_enqueue_script('stf2015_script', STF_FILTER_URL .'js/stf2015_filter_list.js', array('jquery'), '0.1', true);
+
   }
 
   public function sc_filter_list() {
     $query = array_key_exists('filter_query', $_REQUEST) ? $_REQUEST['filter_query'] : '';
-    $list = $this->draw_filter_list($query);
+    $list = $this->draw_filter_list(strip_tags($query));
     $html =
       '<div class="stf2015_filter_list_wrapper">'.
         '<form action="' . get_the_permalink() .'" method="post">'.
@@ -45,12 +39,33 @@ class STF2015_Filter {
 
   public function draw_filter_list($query) {
     $table_list = '';
+    $col_config = array(
+      'headings' => array('KatNr', 'GrpNr', 'Verein', 'Ident.', 'Ktn', 'Zeit',  '1. Wettkampfteil',  'Zeit',  '2. Wettkampfteil',  'Zeit',  '3. Wettkampfteil'),
+      'names' => array('cat_no', 'group_no', 'association', 'identification', 'ktn', 'time1', 'part1', 'time2', 'part2', 'time3', 'part3')
+    );
+
+    $col_config_responsive = array(
+      'headings' => array('GrpNr', 'Verein', 'Ktn'),
+      'names' => array('group_no', 'association', 'ktn')
+    );
     $rootset = $this->subSets($this->get_timetable($query), array('category', 'date'));
     foreach($rootset as $cat_subset) {
       $table_list .= '<h5>' . $cat_subset['split_value'] . '</h5>';
       foreach($cat_subset['subsets'] as $date_subset) {
-        $table_list .= '<h6>' . $this->translate_date($date_subset['split_value']) . '</h6>';
-        $table_list .= $this->filter_subset_table($date_subset['subsets'], $query);
+        $subheading = $this->translate_date($date_subset['split_value']);
+        $overlay_config = rawurlencode(json_encode(array(
+          'heading' => $cat_subset['split_value'],
+          'subheading' => $subheading,
+          'data' => $date_subset['subsets'],
+          'col_config' => $col_config,
+          'content_type' =>  $date_subset['subsets'][0]['cat_no']
+        )));
+
+        $table_list .= '<h6>' . $subheading . '</h6>';
+        $table_list .= '<div class="stf_resp_wrapper" data-overlay="' . $overlay_config . '">';
+        $table_list .= $this->filter_subset_table($date_subset['subsets'], $col_config, $query, 'stf_non_resp_elem');
+        $table_list .= $this->filter_subset_table($date_subset['subsets'], $col_config_responsive, $query, 'stf_resp_elem', true);
+        $table_list .= '</div>';
       }
     }
     return $table_list;
@@ -85,9 +100,9 @@ class STF2015_Filter {
     return strtr($strdate, $trans);
   }
 
-  private function filter_subset_table($table, $highlight=false) {
-    $headings = array('KatNr', 'GrpNr', 'Verein', 'Ident.', 'Ktn', 'Zeit',  '1. Wettkampfteil',  'Zeit',  '2. Wettkampfteil',  'Zeit',  '3. Wettkampfteil');
-    $col_names = array('cat_no', 'group_no', 'association', 'identification', 'ktn', 'time1', 'part1', 'time2', 'part2', 'time3', 'part3');
+  private function filter_subset_table($table, $column_config, $highlight=false, $css_cls='', $info_button=false) {
+    $headings = $column_config['headings'];
+    $col_names = $column_config['names'];
     $col_fns = array('time1' => 'STF2015_Filter::short_time',
                      'time2' => 'STF2015_Filter::short_time',
                      'time3' => 'STF2015_Filter::short_time',
@@ -98,21 +113,29 @@ class STF2015_Filter {
     foreach($headings as $heading)
       $thead .= '<th>' . $heading . '</th>'. "\n";
 
+    if($info_button === true)
+      $thead .= '<th>Mehr Infos</th>'. "\n";
+
+
     $thead .= '</tr></thead>' . "\n";
     $tbody = '<tbody>' . "\n";
 
-    foreach($table as $row) {
-      $tbody .= '<tr>' . "\n";
+    foreach($table as $idx => $row) {
+      $tbody .= '<tr data-idx="' . $idx . '">' . "\n";
       foreach($col_names as $col) {
         $val = $row[$col];
         if(array_key_exists($col, $col_fns) && is_callable($col_fns[$col]))
           $val = call_user_func_array($col_fns[$col], array($val));
         $tbody .= '<td>' . $this->highlight($val, $highlight) . '</td>' . "\n";
       }
+
+      if($info_button === true)
+        $tbody .= '<td class="stf_info_cell"><span></span></td>' . "\n";
+
       $tbody .= '</tr>' . "\n";
     }
     $tbody .= '</tbody>' . "\n";
-    return '<table class="stf2015_filter_list">' . $thead . $tbody . '</table>';
+    return '<table class="stf2015_filter_list ' . $css_cls . '" >' . $thead . $tbody . '</table>';
   }
 
   public function highlight($str, $search, $replace="<span class='highlight'>$0</span>") {
