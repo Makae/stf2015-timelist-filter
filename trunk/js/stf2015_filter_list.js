@@ -50,10 +50,13 @@
         rows += row;
       }
       overlay =  '<div id="stf_data_overlay" class="stf-da-content_type-' + content_type + '">';
+      overlay += '<div class="stf_da_overlay_wrapper">';
       overlay += '<div class="stf_da_close">X</div>';
       overlay += '<h5>' + heading + '</h5>';
       overlay += '<h6>' + subheading + '</h6>';
       overlay += rows;
+      overlay += '<div class="stf_da_close button button-primary">Schliessen</div>';
+      overlay += '</div>';
       overlay += '</div>';
       overlay = $(overlay);
       overlay.appendTo('body').hide();

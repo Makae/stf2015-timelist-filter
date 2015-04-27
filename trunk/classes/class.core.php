@@ -65,6 +65,7 @@ class STF2015_Filter {
         $table_list .= '<div class="stf_resp_wrapper" data-overlay="' . $overlay_config . '">';
         $table_list .= $this->filter_subset_table($date_subset['subsets'], $col_config, $query, 'stf_non_resp_elem');
         $table_list .= $this->filter_subset_table($date_subset['subsets'], $col_config_responsive, $query, 'stf_resp_elem', true);
+        $table_list .= '<div class="stf_resp_elem cleafix"></div>';
         $table_list .= '</div>';
       }
     }
@@ -135,7 +136,7 @@ class STF2015_Filter {
       $tbody .= '</tr>' . "\n";
     }
     $tbody .= '</tbody>' . "\n";
-    return '<table class="stf2015_filter_list ' . $css_cls . '" >' . $thead . $tbody . '</table>';
+    return '<table class="stf2015_filter_list ' . $css_cls . '">' . $thead . $tbody . '</table>';
   }
 
   public function highlight($str, $search, $replace="<span class='highlight'>$0</span>") {
