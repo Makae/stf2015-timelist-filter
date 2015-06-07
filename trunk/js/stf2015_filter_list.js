@@ -25,11 +25,13 @@
         var name = cols.names[k];
         $overlay.find('.idx-' + k).html(data[name]);
       }
+      $('html,body').css('overflow', 'hidden');
       $overlay.fadeIn();
     },
 
     hideDataOverlay : function() {
       this.getDataOverlay().fadeOut();
+      $('html,body').css('overflow', 'auto');
     },
 
     getDataOverlay : function(content_type, heading, subheading, cols, headings) {
@@ -55,7 +57,7 @@
       overlay += '<h5>' + heading + '</h5>';
       overlay += '<h6>' + subheading + '</h6>';
       overlay += rows;
-      overlay += '<div class="stf_da_close button button-primary">Schliessen</div>';
+      overlay += '<div class="stf_da_close btn-close">Schliessen</div>';
       overlay += '</div>';
       overlay += '</div>';
       overlay = $(overlay);
